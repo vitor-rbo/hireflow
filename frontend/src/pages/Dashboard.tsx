@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import type { FormEvent, ChangeEvent, CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
 import api from '../lib/axios'
 import type { Job } from '../types'
+import Navbar from '../components/Navbar'
 
 const STATUS_OPTIONS = ['applied', 'interview', 'offer', 'rejected'] as const
 
@@ -58,7 +58,6 @@ const EMPTY_FORM: JobForm = {
 }
 
 const Dashboard = () => {
-  const { logout } = useAuth()
   const navigate = useNavigate()
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
@@ -80,11 +79,6 @@ const Dashboard = () => {
   }
 
   useEffect(() => { fetchJobs() }, [])
-
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
 
   const handleFormChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -110,6 +104,7 @@ const Dashboard = () => {
 
   return (
     <div style={styles.page}>
+      <Navbar />
       <div style={styles.container}>
         {/* Header */}
         <div style={styles.header}>
@@ -117,9 +112,6 @@ const Dashboard = () => {
           <div style={styles.headerActions}>
             <button style={styles.addButton} onClick={() => setShowModal(true)}>
               + Add Job
-            </button>
-            <button style={styles.logoutButton} onClick={handleLogout}>
-              Log out
             </button>
           </div>
         </div>
@@ -247,13 +239,13 @@ const Dashboard = () => {
 const styles: Record<string, CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: 'var(--bg)',
-    padding: '32px 24px',
+    background: '#0a0a0f',
     boxSizing: 'border-box',
   },
   container: {
     maxWidth: '900px',
     margin: '0 auto',
+    padding: '2rem 24px 32px',
   },
   header: {
     display: 'flex',
@@ -267,7 +259,7 @@ const styles: Record<string, CSSProperties> = {
     margin: 0,
     fontSize: '24px',
     fontWeight: 700,
-    color: 'var(--text-h)',
+    color: '#ffffff',
   },
   headerActions: {
     display: 'flex',
@@ -277,24 +269,14 @@ const styles: Record<string, CSSProperties> = {
     padding: '9px 18px',
     fontSize: '14px',
     fontWeight: 600,
-    background: 'var(--accent)',
+    background: '#b1361e',
     color: '#fff',
     border: 'none',
-    borderRadius: '8px',
-    cursor: 'pointer',
-  },
-  logoutButton: {
-    padding: '9px 18px',
-    fontSize: '14px',
-    fontWeight: 500,
-    background: 'transparent',
-    color: 'var(--text)',
-    border: '1px solid var(--border)',
-    borderRadius: '8px',
+    borderRadius: '4px',
     cursor: 'pointer',
   },
   muted: {
-    color: 'var(--text)',
+    color: '#9a9aaa',
     fontSize: '15px',
     textAlign: 'center',
     marginTop: '48px',
@@ -306,8 +288,8 @@ const styles: Record<string, CSSProperties> = {
   },
   tableWrapper: {
     overflowX: 'auto',
-    border: '1px solid var(--border)',
-    borderRadius: '12px',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
   },
   table: {
     width: '100%',
@@ -318,16 +300,16 @@ const styles: Record<string, CSSProperties> = {
     padding: '12px 16px',
     textAlign: 'left',
     fontWeight: 600,
-    color: 'var(--text)',
-    borderBottom: '1px solid var(--border)',
+    color: '#9a9aaa',
+    borderBottom: '1px solid #2a2a3a',
     whiteSpace: 'nowrap',
   },
   tr: {
-    borderBottom: '1px solid var(--border)',
+    borderBottom: '1px solid #2a2a3a',
   },
   td: {
     padding: '12px 16px',
-    color: 'var(--text-h)',
+    color: '#ffffff',
     verticalAlign: 'middle',
   },
   viewButton: {
@@ -335,15 +317,15 @@ const styles: Record<string, CSSProperties> = {
     fontSize: '13px',
     fontWeight: 500,
     background: 'transparent',
-    color: 'var(--accent)',
-    border: '1px solid var(--accent-border)',
-    borderRadius: '6px',
+    color: '#b1361e',
+    border: '1px solid #b1361e',
+    borderRadius: '4px',
     cursor: 'pointer',
   },
   overlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(0,0,0,0.5)',
+    background: 'rgba(0,0,0,0.7)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -353,19 +335,19 @@ const styles: Record<string, CSSProperties> = {
   modal: {
     width: '100%',
     maxWidth: '480px',
-    background: 'var(--bg)',
-    border: '1px solid var(--border)',
-    borderRadius: '12px',
+    background: '#13131a',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
     padding: '36px 32px',
-    boxShadow: 'var(--shadow)',
+    boxShadow: 'rgba(0,0,0,0.5) 0 10px 15px -3px',
     maxHeight: '90vh',
     overflowY: 'auto',
   },
   modalTitle: {
     margin: '0 0 24px',
     fontSize: '20px',
-    fontWeight: 600,
-    color: 'var(--text-h)',
+    fontWeight: 700,
+    color: '#ffffff',
   },
   form: {
     display: 'flex',
@@ -380,16 +362,16 @@ const styles: Record<string, CSSProperties> = {
   label: {
     fontSize: '13px',
     fontWeight: 500,
-    color: 'var(--text-h)',
+    color: '#9a9aaa',
     textAlign: 'left',
   },
   input: {
     padding: '9px 12px',
     fontSize: '14px',
-    border: '1px solid var(--border)',
-    borderRadius: '8px',
-    background: 'var(--bg)',
-    color: 'var(--text-h)',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
+    background: '#0a0a0f',
+    color: '#ffffff',
     outline: 'none',
     width: '100%',
     boxSizing: 'border-box',
@@ -406,9 +388,9 @@ const styles: Record<string, CSSProperties> = {
     fontSize: '14px',
     fontWeight: 500,
     background: 'transparent',
-    color: 'var(--text)',
-    border: '1px solid var(--border)',
-    borderRadius: '8px',
+    color: '#9a9aaa',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
     cursor: 'pointer',
   },
 }

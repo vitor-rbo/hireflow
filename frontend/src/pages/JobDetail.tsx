@@ -3,6 +3,7 @@ import type { ChangeEvent, CSSProperties } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../lib/axios'
 import type { Job } from '../types'
+import Navbar from '../components/Navbar'
 
 const STATUS_OPTIONS = ['applied', 'interview', 'offer', 'rejected'] as const
 
@@ -95,6 +96,7 @@ const JobDetail = () => {
   if (loading) {
     return (
       <div style={styles.page}>
+        <Navbar />
         <p style={styles.muted}>Loading…</p>
       </div>
     )
@@ -103,6 +105,7 @@ const JobDetail = () => {
   if (error || !job) {
     return (
       <div style={styles.page}>
+        <Navbar />
         <p style={styles.error}>{error ?? 'Job not found.'}</p>
         <button style={styles.backButton} onClick={() => navigate('/')}>← Back</button>
       </div>
@@ -111,6 +114,7 @@ const JobDetail = () => {
 
   return (
     <div style={styles.page}>
+      <Navbar />
       <div style={styles.container}>
         <button style={styles.backButton} onClick={() => navigate('/')}>← Back</button>
 
@@ -191,13 +195,14 @@ const JobDetail = () => {
 const styles: Record<string, CSSProperties> = {
   page: {
     minHeight: '100vh',
-    background: 'var(--bg)',
-    padding: '32px 24px',
+    background: '#0a0a0f',
+    padding: '0 24px 32px',
     boxSizing: 'border-box',
   },
   container: {
     maxWidth: '680px',
     margin: '0 auto',
+    paddingTop: '2rem',
   },
   backButton: {
     marginBottom: '20px',
@@ -205,18 +210,18 @@ const styles: Record<string, CSSProperties> = {
     fontSize: '14px',
     fontWeight: 500,
     background: 'transparent',
-    color: 'var(--text)',
-    border: '1px solid var(--border)',
-    borderRadius: '8px',
+    color: '#9a9aaa',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
     cursor: 'pointer',
     display: 'inline-block',
   },
   card: {
-    background: 'var(--bg)',
-    border: '1px solid var(--border)',
-    borderRadius: '12px',
+    background: '#13131a',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
     padding: '32px',
-    boxShadow: 'var(--shadow)',
+    boxShadow: 'rgba(0,0,0,0.5) 0 10px 15px -3px, rgba(0,0,0,0.3) 0 4px 6px -2px',
   },
   titleRow: {
     display: 'flex',
@@ -230,12 +235,12 @@ const styles: Record<string, CSSProperties> = {
     margin: '0 0 4px',
     fontSize: '22px',
     fontWeight: 700,
-    color: 'var(--text-h)',
+    color: '#ffffff',
   },
   company: {
     margin: 0,
     fontSize: '15px',
-    color: 'var(--text)',
+    color: '#9a9aaa',
   },
   grid: {
     display: 'grid',
@@ -253,21 +258,21 @@ const styles: Record<string, CSSProperties> = {
     fontWeight: 600,
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
-    color: 'var(--text)',
+    color: '#9a9aaa',
   },
   detailValue: {
     fontSize: '15px',
-    color: 'var(--text-h)',
+    color: '#ffffff',
   },
   link: {
     fontSize: '15px',
-    color: 'var(--accent)',
+    color: '#b1361e',
     textDecoration: 'none',
     wordBreak: 'break-all',
   },
   divider: {
     border: 'none',
-    borderTop: '1px solid var(--border)',
+    borderTop: '1px solid #2a2a3a',
     margin: '0 0 24px',
   },
   actionRow: {
@@ -285,15 +290,15 @@ const styles: Record<string, CSSProperties> = {
   label: {
     fontSize: '13px',
     fontWeight: 500,
-    color: 'var(--text-h)',
+    color: '#9a9aaa',
   },
   select: {
     padding: '9px 12px',
     fontSize: '14px',
-    border: '1px solid var(--border)',
-    borderRadius: '8px',
-    background: 'var(--bg)',
-    color: 'var(--text-h)',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
+    background: '#0a0a0f',
+    color: '#ffffff',
     outline: 'none',
     cursor: 'pointer',
     fontFamily: 'inherit',
@@ -302,14 +307,14 @@ const styles: Record<string, CSSProperties> = {
     padding: '9px 18px',
     fontSize: '14px',
     fontWeight: 600,
-    background: '#fee2e2',
-    color: '#b91c1c',
-    border: '1px solid #fca5a5',
-    borderRadius: '8px',
+    background: '#b1361e',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '4px',
     cursor: 'pointer',
   },
   muted: {
-    color: 'var(--text)',
+    color: '#9a9aaa',
     fontSize: '15px',
     textAlign: 'center',
     marginTop: '48px',
