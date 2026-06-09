@@ -13,7 +13,7 @@ const Navbar = () => {
 
   return (
     <nav style={styles.nav}>
-      <Link to="/" style={styles.logo}>Hireflow</Link>
+      <Link to="/dashboard" style={styles.logo}>Hireflow</Link>
       <div style={styles.right}>
         {user && <span style={styles.email}>{user.email}</span>}
         <button style={styles.logoutButton} onClick={handleLogout}>

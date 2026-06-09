@@ -86,7 +86,7 @@ const JobDetail = () => {
     setDeleting(true)
     try {
       await api.delete(`/jobs/${id}`)
-      navigate('/')
+      navigate('/dashboard')
     } catch {
       setError('Failed to delete job.')
       setDeleting(false)
@@ -97,7 +97,9 @@ const JobDetail = () => {
     return (
       <div style={styles.page}>
         <Navbar />
-        <p style={styles.muted}>Loading…</p>
+        <div style={{ paddingTop: '80px' }}>
+          <p style={styles.muted}>Loading…</p>
+        </div>
       </div>
     )
   }
@@ -106,8 +108,10 @@ const JobDetail = () => {
     return (
       <div style={styles.page}>
         <Navbar />
-        <p style={styles.error}>{error ?? 'Job not found.'}</p>
-        <button style={styles.backButton} onClick={() => navigate('/')}>← Back</button>
+        <div style={{ paddingTop: '80px' }}>
+          <p style={styles.error}>{error ?? 'Job not found.'}</p>
+          <button style={styles.backButton} onClick={() => navigate('/dashboard')}>← Back</button>
+        </div>
       </div>
     )
   }
@@ -115,8 +119,9 @@ const JobDetail = () => {
   return (
     <div style={styles.page}>
       <Navbar />
+      <div style={{ paddingTop: '80px' }}>
       <div style={styles.container}>
-        <button style={styles.backButton} onClick={() => navigate('/')}>← Back</button>
+        <button style={styles.backButton} onClick={() => navigate('/dashboard')}>← Back</button>
 
         <div style={styles.card}>
           {/* Title row */}
@@ -187,6 +192,7 @@ const JobDetail = () => {
 
           {error && <p style={{ ...styles.error, marginTop: '12px' }}>{error}</p>}
         </div>
+      </div>
       </div>
     </div>
   )

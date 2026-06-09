@@ -11,7 +11,7 @@ const app = express()
 const PORT = process.env.PORT || 3000
 
 app.use(helmet())
-app.use(cors({ origin: 'https://hireflow-smoky.vercel.app' }))
+app.use(cors({ origin: ['https://hireflow-smoky.vercel.app', 'http://localhost:5173'] }))
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 100 }))
 app.use(express.json())
 

@@ -4,10 +4,16 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import JobDetail from './pages/JobDetail'
+import Home from './pages/Home'
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { token } = useAuth()
-  return token ? <>{children}</> : <Navigate to="/login" />
+  return token ? <>{children}</> : <Navigate to="/login" replace />
+}
+
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { token } = useAuth()
+  return token ? <Navigate to="/dashboard" replace /> : <>{children}</>
 }
 
 const App = () => {
@@ -15,9 +21,10 @@ const App = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/" element={
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          <Route path="/dashboard" element={
             <ProtectedRoute>
               <Dashboard />
             </ProtectedRoute>

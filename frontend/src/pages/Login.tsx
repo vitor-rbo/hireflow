@@ -13,6 +13,7 @@ const Login = () => {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -37,7 +38,7 @@ const Login = () => {
       }
 
       login(data.access_token, data.user)
-      navigate('/')
+      navigate('/dashboard')
     } catch {
       setError('Network error. Please try again.')
     } finally {
@@ -47,6 +48,10 @@ const Login = () => {
 
   return (
     <div style={styles.page}>
+      <nav style={styles.nav}>
+        <Link to="/" style={styles.navLogo}>Hireflow</Link>
+      </nav>
+      <div style={styles.content}>
       <div style={styles.card}>
         <h2 style={styles.title}>Sign in to Hireflow</h2>
 
@@ -67,16 +72,37 @@ const Login = () => {
 
           <div style={styles.field}>
             <label style={styles.label} htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              style={styles.input}
-              placeholder="••••••••"
-            />
+            <div style={styles.inputWrapper}>
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+                style={styles.inputWithToggle}
+                placeholder="••••••••"
+              />
+              <button
+                type="button"
+                style={styles.eyeButton}
+                onClick={() => setShowPassword(p => !p)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94" />
+                    <path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19" />
+                    <line x1="1" y1="1" x2="23" y2="23" />
+                  </svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                    <circle cx="12" cy="12" r="3" />
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
 
           {error && <p style={styles.error}>{error}</p>}
@@ -91,6 +117,7 @@ const Login = () => {
           <Link to="/register" style={styles.link}>Register</Link>
         </p>
       </div>
+      </div>
     </div>
   )
 }
@@ -99,10 +126,34 @@ const styles: Record<string, CSSProperties> = {
   page: {
     minHeight: '100vh',
     display: 'flex',
+    flexDirection: 'column',
+    background: '#0a0a0f',
+  },
+  nav: {
+    display: 'flex',
+    alignItems: 'center',
+    padding: '0 32px',
+    height: '56px',
+    borderBottom: '1px solid #2a2a3a',
+    background: '#13131a',
+    position: 'sticky',
+    top: 0,
+    zIndex: 50,
+    boxSizing: 'border-box',
+  },
+  navLogo: {
+    fontSize: '18px',
+    fontWeight: 700,
+    color: '#b1361e',
+    textDecoration: 'none',
+    letterSpacing: '-0.3px',
+  },
+  content: {
+    flex: 1,
+    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '24px',
-    background: '#0a0a0f',
   },
   card: {
     width: '100%',
@@ -146,6 +197,33 @@ const styles: Record<string, CSSProperties> = {
     outline: 'none',
     width: '100%',
     boxSizing: 'border-box',
+  },
+  inputWrapper: {
+    position: 'relative',
+    display: 'flex',
+    alignItems: 'center',
+  },
+  inputWithToggle: {
+    padding: '10px 40px 10px 12px',
+    fontSize: '15px',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
+    background: '#0a0a0f',
+    color: '#ffffff',
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: '10px',
+    background: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    color: '#9a9aaa',
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
   },
   error: {
     margin: 0,
