@@ -97,9 +97,7 @@ const JobDetail = () => {
     return (
       <div style={styles.page}>
         <Navbar />
-        <div style={{ paddingTop: '80px' }}>
-          <p style={styles.muted}>Loading…</p>
-        </div>
+        <p style={styles.muted}>Loading…</p>
       </div>
     )
   }
@@ -108,10 +106,8 @@ const JobDetail = () => {
     return (
       <div style={styles.page}>
         <Navbar />
-        <div style={{ paddingTop: '80px' }}>
-          <p style={styles.error}>{error ?? 'Job not found.'}</p>
-          <button style={styles.backButton} onClick={() => navigate('/dashboard')}>← Back</button>
-        </div>
+        <p style={styles.error}>{error ?? 'Job not found.'}</p>
+        <button style={styles.backButton} onClick={() => navigate('/dashboard')}>← Back</button>
       </div>
     )
   }
@@ -119,12 +115,10 @@ const JobDetail = () => {
   return (
     <div style={styles.page}>
       <Navbar />
-      <div style={{ paddingTop: '80px' }}>
       <div style={styles.container}>
         <button style={styles.backButton} onClick={() => navigate('/dashboard')}>← Back</button>
 
         <div style={styles.card}>
-          {/* Title row */}
           <div style={styles.titleRow}>
             <div>
               <h1 style={styles.role}>{job.role}</h1>
@@ -133,7 +127,6 @@ const JobDetail = () => {
             <span style={badgeStyle(job.status)}>{job.status}</span>
           </div>
 
-          {/* Details grid */}
           <div style={styles.grid}>
             <div style={styles.detailBlock}>
               <span style={styles.detailLabel}>Applied Date</span>
@@ -164,7 +157,6 @@ const JobDetail = () => {
 
           <hr style={styles.divider} />
 
-          {/* Status change */}
           <div style={styles.actionRow}>
             <div style={styles.field}>
               <label style={styles.label} htmlFor="status">Change Status</label>
@@ -193,7 +185,6 @@ const JobDetail = () => {
           {error && <p style={{ ...styles.error, marginTop: '12px' }}>{error}</p>}
         </div>
       </div>
-      </div>
     </div>
   )
 }
@@ -202,13 +193,12 @@ const styles: Record<string, CSSProperties> = {
   page: {
     minHeight: '100vh',
     background: '#0a0a0f',
-    padding: '0 24px 32px',
     boxSizing: 'border-box',
   },
   container: {
     maxWidth: '680px',
     margin: '0 auto',
-    paddingTop: '2rem',
+    padding: '2rem 24px 32px',
   },
   backButton: {
     marginBottom: '20px',

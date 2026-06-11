@@ -105,6 +105,7 @@ const Dashboard = () => {
   return (
     <div style={styles.page}>
       <Navbar />
+      <div style={{ height: '80px' }} />
       <div style={styles.container}>
         {/* Header */}
         <div style={styles.header}>
