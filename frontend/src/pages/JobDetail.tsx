@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import type { ChangeEvent, CSSProperties } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import api from '../lib/axios'
-import type { Job } from '../types'
+import type { Job, StatusHistory } from '../types'
 import Navbar from '../components/Navbar'
+import { useToast } from '../context/ToastContext'
 
 const STATUS_OPTIONS = ['applied', 'interview', 'offer', 'rejected'] as const
 
@@ -39,14 +40,28 @@ const badgeStyle = (status: string): CSSProperties => {
   }
 }
 
+interface EditForm {
+  company: string
+  role: string
+  applied_date: string
+  url: string
+  notes: string
+  status: string
+}
+
 const JobDetail = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const { showToast } = useToast()
   const [job, setJob] = useState<Job | null>(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [notFound, setNotFound] = useState(false)
   const [statusUpdating, setStatusUpdating] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [editing, setEditing] = useState(false)
+  const [editForm, setEditForm] = useState<EditForm | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [statusHistory, setStatusHistory] = useState<StatusHistory[]>([])
 
   useEffect(() => {
     const fetchJob = async () => {
@@ -54,12 +69,18 @@ const JobDetail = () => {
         const res = await api.get<Job[]>('/jobs')
         const found = res.data.find(j => j.id === id)
         if (!found) {
-          setError('Job not found.')
+          setNotFound(true)
         } else {
           setJob(found)
+          try {
+            const history = await api.get<StatusHistory[]>(`/jobs/${id}/history`)
+            setStatusHistory(history.data)
+          } catch (err) {
+            console.error('Failed to load status history:', err)
+          }
         }
       } catch {
-        setError('Failed to load job.')
+        showToast('Failed to load job.', 'error')
       } finally {
         setLoading(false)
       }
@@ -75,7 +96,7 @@ const JobDetail = () => {
       await api.patch(`/jobs/${id}`, { status: newStatus })
       setJob(prev => prev ? { ...prev, status: newStatus } : prev)
     } catch {
-      setError('Failed to update status.')
+      showToast('Failed to update status.', 'error')
     } finally {
       setStatusUpdating(false)
     }
@@ -86,10 +107,51 @@ const JobDetail = () => {
     setDeleting(true)
     try {
       await api.delete(`/jobs/${id}`)
+      showToast('Job deleted successfully.', 'success')
       navigate('/dashboard')
     } catch {
-      setError('Failed to delete job.')
+      showToast('Failed to delete job.', 'error')
       setDeleting(false)
+    }
+  }
+
+  const handleEditStart = () => {
+    if (!job) return
+    setEditForm({
+      company: job.company,
+      role: job.role,
+      applied_date: job.applied_date,
+      url: job.url ?? '',
+      notes: job.notes ?? '',
+      status: job.status,
+    })
+    setEditing(true)
+  }
+
+  const handleEditCancel = () => {
+    setEditing(false)
+    setEditForm(null)
+  }
+
+  const handleEditChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+  ) => {
+    setEditForm(prev => prev ? { ...prev, [e.target.name]: e.target.value } : prev)
+  }
+
+  const handleEditSave = async () => {
+    if (!editForm) return
+    setSaving(true)
+    try {
+      await api.patch(`/jobs/${id}`, editForm)
+      setJob(prev => prev ? { ...prev, ...editForm } : prev)
+      setEditing(false)
+      setEditForm(null)
+      showToast('Job updated successfully.', 'success')
+    } catch {
+      showToast('Failed to save changes.', 'error')
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -102,12 +164,14 @@ const JobDetail = () => {
     )
   }
 
-  if (error || !job) {
+  if (notFound || !job) {
     return (
       <div style={styles.page}>
         <Navbar />
-        <p style={styles.error}>{error ?? 'Job not found.'}</p>
-        <button style={styles.backButton} onClick={() => navigate('/dashboard')}>← Back</button>
+        <div style={styles.container}>
+          <p style={styles.muted}>Job not found.</p>
+          <button style={styles.backButton} onClick={() => navigate('/dashboard')}>← Back</button>
+        </div>
       </div>
     )
   }
@@ -119,70 +183,203 @@ const JobDetail = () => {
         <button style={styles.backButton} onClick={() => navigate('/dashboard')}>← Back</button>
 
         <div style={styles.card}>
-          <div style={styles.titleRow}>
-            <div>
-              <h1 style={styles.role}>{job.role}</h1>
-              <p style={styles.company}>{job.company}</p>
-            </div>
-            <span style={badgeStyle(job.status)}>{job.status}</span>
-          </div>
-
-          <div style={styles.grid}>
-            <div style={styles.detailBlock}>
-              <span style={styles.detailLabel}>Applied Date</span>
-              <span style={styles.detailValue}>{job.applied_date}</span>
-            </div>
-
-            {job.url && (
-              <div style={styles.detailBlock}>
-                <span style={styles.detailLabel}>Job URL</span>
-                <a
-                  href={job.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={styles.link}
-                >
-                  {job.url}
-                </a>
+          {editing && editForm ? (
+            <>
+              <div style={styles.editGrid}>
+                <div style={styles.field}>
+                  <label style={styles.label} htmlFor="role">Role</label>
+                  <input
+                    id="role"
+                    name="role"
+                    type="text"
+                    value={editForm.role}
+                    onChange={handleEditChange}
+                    style={styles.input}
+                  />
+                </div>
+                <div style={styles.field}>
+                  <label style={styles.label} htmlFor="company">Company</label>
+                  <input
+                    id="company"
+                    name="company"
+                    type="text"
+                    value={editForm.company}
+                    onChange={handleEditChange}
+                    style={styles.input}
+                  />
+                </div>
+                <div style={styles.field}>
+                  <label style={styles.label} htmlFor="applied_date">Applied Date</label>
+                  <input
+                    id="applied_date"
+                    name="applied_date"
+                    type="date"
+                    value={editForm.applied_date}
+                    onChange={handleEditChange}
+                    style={styles.input}
+                  />
+                </div>
+                <div style={styles.field}>
+                  <label style={styles.label} htmlFor="url">Job URL</label>
+                  <input
+                    id="url"
+                    name="url"
+                    type="url"
+                    value={editForm.url}
+                    onChange={handleEditChange}
+                    style={styles.input}
+                    placeholder="https://…"
+                  />
+                </div>
+                <div style={{ ...styles.field, gridColumn: '1 / -1' }}>
+                  <label style={styles.label} htmlFor="notes">Notes</label>
+                  <textarea
+                    id="notes"
+                    name="notes"
+                    value={editForm.notes}
+                    onChange={handleEditChange}
+                    rows={3}
+                    style={{ ...styles.input, resize: 'vertical' }}
+                    placeholder="Optional notes…"
+                  />
+                </div>
               </div>
-            )}
 
-            {job.notes && (
-              <div style={{ ...styles.detailBlock, gridColumn: '1 / -1' }}>
-                <span style={styles.detailLabel}>Notes</span>
-                <span style={styles.detailValue}>{job.notes}</span>
+              <hr style={styles.divider} />
+
+              <div style={styles.actionRow}>
+                <div style={styles.field}>
+                  <label style={styles.label} htmlFor="status">Status</label>
+                  <select
+                    id="status"
+                    name="status"
+                    value={editForm.status}
+                    onChange={handleEditChange}
+                    style={styles.select}
+                  >
+                    {STATUS_OPTIONS.map(s => (
+                      <option key={s} value={s} style={{ textTransform: 'capitalize' }}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={styles.editActions}>
+                  <button style={styles.cancelButton} onClick={handleEditCancel} disabled={saving}>
+                    Cancel
+                  </button>
+                  <button style={styles.saveButton} onClick={handleEditSave} disabled={saving}>
+                    {saving ? 'Saving…' : 'Save'}
+                  </button>
+                </div>
               </div>
-            )}
-          </div>
 
-          <hr style={styles.divider} />
+            </>
+          ) : (
+            <>
+              <div style={styles.titleRow}>
+                <div>
+                  <h1 style={styles.role}>{job.role}</h1>
+                  <p style={styles.company}>{job.company}</p>
+                </div>
+                <span style={badgeStyle(job.status)}>{job.status}</span>
+              </div>
 
-          <div style={styles.actionRow}>
-            <div style={styles.field}>
-              <label style={styles.label} htmlFor="status">Change Status</label>
-              <select
-                id="status"
-                value={job.status}
-                onChange={handleStatusChange}
-                disabled={statusUpdating}
-                style={styles.select}
-              >
-                {STATUS_OPTIONS.map(s => (
-                  <option key={s} value={s} style={{ textTransform: 'capitalize' }}>{s}</option>
-                ))}
-              </select>
+              <div style={styles.grid}>
+                <div style={styles.detailBlock}>
+                  <span style={styles.detailLabel}>Applied Date</span>
+                  <span style={styles.detailValue}>{job.applied_date}</span>
+                </div>
+
+                {job.url && (
+                  <div style={styles.detailBlock}>
+                    <span style={styles.detailLabel}>Job URL</span>
+                    <a
+                      href={job.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={styles.link}
+                    >
+                      {job.url}
+                    </a>
+                  </div>
+                )}
+
+                {job.notes && (
+                  <div style={{ ...styles.detailBlock, gridColumn: '1 / -1' }}>
+                    <span style={styles.detailLabel}>Notes</span>
+                    <span style={styles.detailValue}>{job.notes}</span>
+                  </div>
+                )}
+              </div>
+
+              <hr style={styles.divider} />
+
+              <div style={styles.actionRow}>
+                <div style={styles.field}>
+                  <label style={styles.label} htmlFor="status">Change Status</label>
+                  <select
+                    id="status"
+                    value={job.status}
+                    onChange={handleStatusChange}
+                    disabled={statusUpdating}
+                    style={styles.select}
+                  >
+                    {STATUS_OPTIONS.map(s => (
+                      <option key={s} value={s} style={{ textTransform: 'capitalize' }}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div style={styles.editActions}>
+                  <button style={styles.editButton} onClick={handleEditStart}>
+                    Edit
+                  </button>
+                  <button
+                    style={styles.deleteButton}
+                    onClick={handleDelete}
+                    disabled={deleting}
+                  >
+                    {deleting ? 'Deleting…' : 'Delete'}
+                  </button>
+                </div>
+              </div>
+
+            </>
+          )}
+        </div>
+
+        <div style={{ ...styles.card, marginTop: '24px' }}>
+          <h2 style={styles.timelineHeading}>Application Timeline</h2>
+
+          {statusHistory.length === 0 ? (
+            <p style={styles.timelineEmpty}>No status changes recorded yet.</p>
+          ) : (
+            <div style={styles.timeline}>
+              {statusHistory.map((entry, i) => {
+                const dotColor = DARK_STATUS_COLORS[entry.new_status]?.color ?? '#9a9aaa'
+                const isLast = i === statusHistory.length - 1
+                const date = new Date(entry.changed_at).toLocaleDateString('en-GB', {
+                  day: 'numeric', month: 'short', year: 'numeric',
+                })
+                return (
+                  <div key={entry.id} style={styles.timelineItem}>
+                    <div style={styles.timelineLeft}>
+                      <div style={{ ...styles.timelineDot, background: dotColor }} />
+                      {!isLast && <div style={styles.timelineLine} />}
+                    </div>
+                    <div style={{ ...styles.timelineContent, paddingBottom: isLast ? 0 : '20px' }}>
+                      <span style={styles.timelineChange}>
+                        <span style={{ textTransform: 'capitalize' }}>{entry.old_status}</span>
+                        {' → '}
+                        <span style={{ textTransform: 'capitalize' }}>{entry.new_status}</span>
+                      </span>
+                      <span style={styles.timelineDate}>{date}</span>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
-
-            <button
-              style={styles.deleteButton}
-              onClick={handleDelete}
-              disabled={deleting}
-            >
-              {deleting ? 'Deleting…' : 'Delete'}
-            </button>
-          </div>
-
-          {error && <p style={{ ...styles.error, marginTop: '12px' }}>{error}</p>}
+          )}
         </div>
       </div>
     </div>
@@ -244,6 +441,12 @@ const styles: Record<string, CSSProperties> = {
     gap: '20px',
     marginBottom: '24px',
   },
+  editGrid: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '16px',
+    marginBottom: '24px',
+  },
   detailBlock: {
     display: 'flex',
     flexDirection: 'column',
@@ -278,6 +481,11 @@ const styles: Record<string, CSSProperties> = {
     gap: '16px',
     flexWrap: 'wrap',
   },
+  editActions: {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center',
+  },
   field: {
     display: 'flex',
     flexDirection: 'column',
@@ -287,6 +495,18 @@ const styles: Record<string, CSSProperties> = {
     fontSize: '13px',
     fontWeight: 500,
     color: '#9a9aaa',
+  },
+  input: {
+    padding: '9px 12px',
+    fontSize: '14px',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
+    background: '#0a0a0f',
+    color: '#ffffff',
+    outline: 'none',
+    width: '100%',
+    boxSizing: 'border-box',
+    fontFamily: 'inherit',
   },
   select: {
     padding: '9px 12px',
@@ -298,6 +518,36 @@ const styles: Record<string, CSSProperties> = {
     outline: 'none',
     cursor: 'pointer',
     fontFamily: 'inherit',
+  },
+  editButton: {
+    padding: '9px 18px',
+    fontSize: '14px',
+    fontWeight: 600,
+    background: 'transparent',
+    color: '#ffffff',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  saveButton: {
+    padding: '9px 18px',
+    fontSize: '14px',
+    fontWeight: 600,
+    background: '#b1361e',
+    color: '#ffffff',
+    border: 'none',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  cancelButton: {
+    padding: '9px 18px',
+    fontSize: '14px',
+    fontWeight: 500,
+    background: 'transparent',
+    color: '#9a9aaa',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
+    cursor: 'pointer',
   },
   deleteButton: {
     padding: '9px 18px',
@@ -315,10 +565,61 @@ const styles: Record<string, CSSProperties> = {
     textAlign: 'center',
     marginTop: '48px',
   },
-  error: {
+  timelineHeading: {
+    margin: '0 0 20px',
+    fontSize: '16px',
+    fontWeight: 600,
+    color: '#ffffff',
+  },
+  timelineEmpty: {
     margin: 0,
     fontSize: '14px',
-    color: '#e53e3e',
+    color: '#9a9aaa',
+  },
+  timeline: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
+  timelineItem: {
+    display: 'flex',
+    gap: '14px',
+  },
+  timelineLeft: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: '12px',
+    flexShrink: 0,
+  },
+  timelineDot: {
+    width: '10px',
+    height: '10px',
+    borderRadius: '50%',
+    flexShrink: 0,
+    marginTop: '3px',
+  },
+  timelineLine: {
+    width: '2px',
+    flex: 1,
+    background: '#2a2a3a',
+    marginTop: '4px',
+    minHeight: '12px',
+  },
+  timelineContent: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    flex: 1,
+    gap: '12px',
+  },
+  timelineChange: {
+    fontSize: '14px',
+    color: '#ffffff',
+  },
+  timelineDate: {
+    fontSize: '13px',
+    color: '#9a9aaa',
+    whiteSpace: 'nowrap',
   },
 }
 

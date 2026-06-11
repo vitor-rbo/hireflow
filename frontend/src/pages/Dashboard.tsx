@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { FormEvent, ChangeEvent, CSSProperties } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api from '../lib/axios'
 import type { Job } from '../types'
 import Navbar from '../components/Navbar'
+import { useToast } from '../context/ToastContext'
 
 const STATUS_OPTIONS = ['applied', 'interview', 'offer', 'rejected'] as const
 
@@ -59,20 +60,25 @@ const EMPTY_FORM: JobForm = {
 
 const Dashboard = () => {
   const navigate = useNavigate()
+  const { showToast } = useToast()
+  const toastShown = useRef(false)
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [form, setForm] = useState<JobForm>(EMPTY_FORM)
   const [submitting, setSubmitting] = useState(false)
-  const [formError, setFormError] = useState<string | null>(null)
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState('all')
 
   const fetchJobs = async () => {
     try {
       const res = await api.get<Job[]>('/jobs')
       setJobs(res.data)
     } catch {
-      setError('Failed to load jobs.')
+      if (!toastShown.current) {
+        toastShown.current = true
+        showToast('Failed to load jobs.', 'error')
+      }
     } finally {
       setLoading(false)
     }
@@ -88,26 +94,33 @@ const Dashboard = () => {
 
   const handleAddJob = async (e: FormEvent) => {
     e.preventDefault()
-    setFormError(null)
     setSubmitting(true)
     try {
       await api.post('/jobs', form)
       setShowModal(false)
       setForm(EMPTY_FORM)
       await fetchJobs()
+      showToast('Job added successfully.', 'success')
     } catch {
-      setFormError('Failed to add job. Please try again.')
+      showToast('Failed to add job. Please try again.', 'error')
     } finally {
       setSubmitting(false)
     }
   }
 
+  const filteredJobs = jobs.filter(job => {
+    const q = search.trim().toLowerCase()
+    const matchesSearch = !q ||
+      job.company.toLowerCase().includes(q) ||
+      job.role.toLowerCase().includes(q)
+    const matchesStatus = statusFilter === 'all' || job.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
+
   return (
     <div style={styles.page}>
       <Navbar />
-      <div style={{ height: '80px' }} />
       <div style={styles.container}>
-        {/* Header */}
         <div style={styles.header}>
           <h1 style={styles.heading}>My Applications</h1>
           <div style={styles.headerActions}>
@@ -117,50 +130,77 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Job list */}
         {loading && <p style={styles.muted}>Loading…</p>}
-        {error && <p style={styles.error}>{error}</p>}
 
-        {!loading && !error && jobs.length === 0 && (
+        {!loading && jobs.length === 0 && (
           <p style={styles.muted}>No applications yet. Add your first job!</p>
         )}
 
-        {!loading && !error && jobs.length > 0 && (
-          <div style={styles.tableWrapper}>
-            <table style={styles.table}>
-              <thead>
-                <tr>
-                  {['Company', 'Role', 'Status', 'Applied Date', ''].map(h => (
-                    <th key={h} style={styles.th}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {jobs.map(job => (
-                  <tr key={job.id} style={styles.tr}>
-                    <td style={styles.td}>{job.company}</td>
-                    <td style={styles.td}>{job.role}</td>
-                    <td style={styles.td}>
-                      <span style={badgeStyle(job.status)}>{job.status}</span>
-                    </td>
-                    <td style={styles.td}>{job.applied_date}</td>
-                    <td style={styles.td}>
-                      <button
-                        style={styles.viewButton}
-                        onClick={() => navigate(`/jobs/${job.id}`)}
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
+        {!loading && jobs.length > 0 && (
+          <>
+            <div style={styles.filterBar}>
+              <input
+                type="text"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search by company or role…"
+                style={styles.searchInput}
+              />
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                style={styles.filterSelect}
+              >
+                <option value="all">All Statuses</option>
+                {STATUS_OPTIONS.map(s => (
+                  <option key={s} value={s} style={{ textTransform: 'capitalize' }}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </select>
+            </div>
+
+            <p style={styles.resultCount}>
+              Showing {filteredJobs.length} of {jobs.length} application{jobs.length !== 1 ? 's' : ''}
+            </p>
+
+            {filteredJobs.length === 0 ? (
+              <p style={styles.muted}>No applications match your search.</p>
+            ) : (
+              <div style={styles.tableWrapper}>
+                <table style={styles.table}>
+                  <thead>
+                    <tr>
+                      {['Company', 'Role', 'Status', 'Applied Date', ''].map(h => (
+                        <th key={h} style={styles.th}>{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredJobs.map(job => (
+                      <tr key={job.id} style={styles.tr}>
+                        <td style={styles.td}>{job.company}</td>
+                        <td style={styles.td}>{job.role}</td>
+                        <td style={styles.td}>
+                          <span style={badgeStyle(job.status)}>{job.status}</span>
+                        </td>
+                        <td style={styles.td}>{job.applied_date}</td>
+                        <td style={styles.td}>
+                          <button
+                            style={styles.viewButton}
+                            onClick={() => navigate(`/jobs/${job.id}`)}
+                          >
+                            View
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </>
         )}
       </div>
 
-      {/* Add Job Modal */}
       {showModal && (
         <div style={styles.overlay} onClick={() => setShowModal(false)}>
           <div style={styles.modal} onClick={e => e.stopPropagation()}>
@@ -215,7 +255,6 @@ const Dashboard = () => {
                 />
               </div>
 
-              {formError && <p style={styles.error}>{formError}</p>}
 
               <div style={styles.modalActions}>
                 <button
@@ -265,6 +304,42 @@ const styles: Record<string, CSSProperties> = {
   headerActions: {
     display: 'flex',
     gap: '10px',
+  },
+  filterBar: {
+    display: 'flex',
+    gap: '12px',
+    marginBottom: '12px',
+    flexWrap: 'wrap',
+  },
+  searchInput: {
+    flex: 1,
+    minWidth: '200px',
+    padding: '9px 12px',
+    fontSize: '14px',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
+    background: '#0a0a0f',
+    color: '#ffffff',
+    outline: 'none',
+    fontFamily: 'inherit',
+    boxSizing: 'border-box',
+  },
+  filterSelect: {
+    padding: '9px 12px',
+    fontSize: '14px',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
+    background: '#0a0a0f',
+    color: '#ffffff',
+    outline: 'none',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    minWidth: '160px',
+  },
+  resultCount: {
+    margin: '0 0 16px',
+    fontSize: '13px',
+    color: '#9a9aaa',
   },
   addButton: {
     padding: '9px 18px',
