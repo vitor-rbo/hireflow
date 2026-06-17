@@ -85,3 +85,56 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+/* ── Mobile responsive (768 px breakpoint) ── */
+@media (max-width: 768px) {
+  /* Home – nav */
+  .home-nav  { padding: 0 16px !important; }
+  .home-nav-right { gap: 8px !important; }
+  .home-nav-btn { padding: 6px 10px !important; font-size: 12px !important; }
+
+  /* Home – hero */
+  .hero-heading { font-size: 34px !important; letter-spacing: -0.5px !important; }
+
+  /* Home – features */
+  .features-grid { grid-template-columns: 1fr !important; }
+
+  /* Home – about */
+  .about-inner { grid-template-columns: 1fr !important; gap: 24px !important; }
+
+  /* Home – footer */
+  .home-footer { padding: 20px 16px !important; }
+
+  /* Authenticated Navbar */
+  .navbar-email { display: none !important; }
+
+  /* Dashboard – filter bar */
+  .filter-bar { flex-direction: column !important; }
+  .filter-bar > input,
+  .filter-bar > select { width: 100% !important; min-width: unset !important; box-sizing: border-box !important; }
+
+  /* Dashboard – table/card toggle */
+  .jobs-table-view { display: none !important; }
+  .jobs-card-view  { display: flex !important; flex-direction: column; gap: 12px; }
+
+  /* Dashboard – Add Job modal */
+  .add-job-overlay { align-items: flex-end !important; padding: 0 !important; }
+  .add-job-modal {
+    max-width: 100% !important;
+    border-radius: 8px 8px 0 0 !important;
+    padding: 28px 16px !important;
+    max-height: 90vh !important;
+  }
+
+  /* JobDetail – grids */
+  .detail-grid { grid-template-columns: 1fr !important; }
+  .edit-grid   { grid-template-columns: 1fr !important; }
+
+  /* JobDetail – action row */
+  .action-row { flex-direction: column !important; align-items: stretch !important; }
+  .detail-edit-actions { justify-content: flex-end !important; }
+
+  /* Login / Register */
+  .auth-nav  { padding: 0 16px !important; }
+  .auth-card { padding: 28px 20px !important; }
+}

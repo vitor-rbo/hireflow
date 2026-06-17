@@ -48,11 +48,11 @@ const Login = () => {
 
   return (
     <div style={styles.page}>
-      <nav style={styles.nav}>
+      <nav style={styles.nav} className="auth-nav">
         <Link to="/" style={styles.navLogo}>Hireflow</Link>
       </nav>
       <div style={styles.content}>
-      <div style={styles.card}>
+      <div style={styles.card} className="auth-card">
         <h2 style={styles.title}>Sign in to Hireflow</h2>
 
         <form onSubmit={handleSubmit} style={styles.form}>

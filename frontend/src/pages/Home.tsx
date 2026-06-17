@@ -5,11 +5,11 @@ const Home = () => {
   return (
     <div style={styles.page}>
       {/* Navbar */}
-      <nav style={styles.nav}>
+      <nav style={styles.nav} className="home-nav">
         <span style={styles.navLogo}>Hireflow</span>
-        <div style={styles.navRight}>
-          <Link to="/login" style={styles.navOutlineBtn}>Log In</Link>
-          <Link to="/register" style={styles.navSolidBtn}>Join</Link>
+        <div style={styles.navRight} className="home-nav-right">
+          <Link to="/login" style={styles.navOutlineBtn} className="home-nav-btn">Log In</Link>
+          <Link to="/register" style={styles.navSolidBtn} className="home-nav-btn">Join</Link>
         </div>
       </nav>
 
@@ -17,7 +17,7 @@ const Home = () => {
       <section style={styles.hero}>
         <div style={styles.heroGlow} />
         <div style={styles.heroContent}>
-          <h1 style={styles.heroHeading}>
+          <h1 style={styles.heroHeading} className="hero-heading">
             <span style={styles.heroWhite}>Track your path to</span>
             <br />
             <span style={styles.heroRed}>getting hired</span>
@@ -32,7 +32,7 @@ const Home = () => {
 
       {/* Features */}
       <section style={styles.features}>
-        <div style={styles.featuresGrid}>
+        <div style={styles.featuresGrid} className="features-grid">
           {[
             {
               icon: '📋',
@@ -61,7 +61,7 @@ const Home = () => {
 
       {/* About */}
       <section style={styles.about}>
-        <div style={styles.aboutInner}>
+        <div style={styles.aboutInner} className="about-inner">
           <div style={styles.aboutLeft}>
             <h2 style={styles.aboutHeading}>About Hireflow</h2>
             <p style={styles.aboutText}>
@@ -87,7 +87,7 @@ const Home = () => {
       </section>
 
       {/* Footer */}
-      <footer style={styles.footer}>
+      <footer style={styles.footer} className="home-footer">
         <span style={styles.footerLogo}>Hireflow</span>
         <div style={styles.footerLinks}>
           <a

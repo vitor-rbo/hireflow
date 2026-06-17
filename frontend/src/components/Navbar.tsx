@@ -15,7 +15,7 @@ const Navbar = () => {
     <nav style={styles.nav}>
       <Link to="/dashboard" style={styles.logo}>Hireflow</Link>
       <div style={styles.right}>
-        {user && <span style={styles.email}>{user.email}</span>}
+        {user && <span style={styles.email} className="navbar-email">{user.email}</span>}
         <button style={styles.logoutButton} onClick={handleLogout}>
           Log out
         </button>

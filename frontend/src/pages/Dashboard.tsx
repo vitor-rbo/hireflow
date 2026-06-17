@@ -7,6 +7,7 @@ import Navbar from '../components/Navbar'
 import { useToast } from '../context/ToastContext'
 
 const STATUS_OPTIONS = ['applied', 'interview', 'offer', 'rejected'] as const
+const JOBS_PER_PAGE = 10
 
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   applied:   { bg: '#dbeafe', color: '#1d4ed8' },
@@ -69,6 +70,7 @@ const Dashboard = () => {
   const [submitting, setSubmitting] = useState(false)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
+  const [currentPage, setCurrentPage] = useState(1)
 
   const fetchJobs = async () => {
     try {
@@ -85,6 +87,7 @@ const Dashboard = () => {
   }
 
   useEffect(() => { fetchJobs() }, [])
+  useEffect(() => { setCurrentPage(1) }, [search, statusFilter])
 
   const handleFormChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -117,6 +120,12 @@ const Dashboard = () => {
     return matchesSearch && matchesStatus
   })
 
+  const totalPages = Math.ceil(filteredJobs.length / JOBS_PER_PAGE)
+  const paginatedJobs = filteredJobs.slice(
+    (currentPage - 1) * JOBS_PER_PAGE,
+    currentPage * JOBS_PER_PAGE
+  )
+
   return (
     <div style={styles.page}>
       <Navbar />
@@ -138,7 +147,7 @@ const Dashboard = () => {
 
         {!loading && jobs.length > 0 && (
           <>
-            <div style={styles.filterBar}>
+            <div style={styles.filterBar} className="filter-bar">
               <input
                 type="text"
                 value={search}
@@ -165,36 +174,91 @@ const Dashboard = () => {
             {filteredJobs.length === 0 ? (
               <p style={styles.muted}>No applications match your search.</p>
             ) : (
-              <div style={styles.tableWrapper}>
-                <table style={styles.table}>
-                  <thead>
-                    <tr>
-                      {['Company', 'Role', 'Status', 'Applied Date', ''].map(h => (
-                        <th key={h} style={styles.th}>{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredJobs.map(job => (
-                      <tr key={job.id} style={styles.tr}>
-                        <td style={styles.td}>{job.company}</td>
-                        <td style={styles.td}>{job.role}</td>
-                        <td style={styles.td}>
-                          <span style={badgeStyle(job.status)}>{job.status}</span>
-                        </td>
-                        <td style={styles.td}>{job.applied_date}</td>
-                        <td style={styles.td}>
-                          <button
-                            style={styles.viewButton}
-                            onClick={() => navigate(`/jobs/${job.id}`)}
-                          >
-                            View
-                          </button>
-                        </td>
+              <>
+                {/* Desktop table */}
+                <div style={styles.tableWrapper} className="jobs-table-view">
+                  <table style={styles.table}>
+                    <thead>
+                      <tr>
+                        {['Company', 'Role', 'Status', 'Applied Date', ''].map(h => (
+                          <th key={h} style={styles.th}>{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {paginatedJobs.map(job => (
+                        <tr key={job.id} style={styles.tr}>
+                          <td style={styles.td}>{job.company}</td>
+                          <td style={styles.td}>{job.role}</td>
+                          <td style={styles.td}>
+                            <span style={badgeStyle(job.status)}>{job.status}</span>
+                          </td>
+                          <td style={styles.td}>{job.applied_date}</td>
+                          <td style={styles.td}>
+                            <button
+                              style={styles.viewButton}
+                              onClick={() => navigate(`/jobs/${job.id}`)}
+                            >
+                              View
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile cards */}
+                <div className="jobs-card-view" style={{ display: 'none' }}>
+                  {paginatedJobs.map(job => (
+                    <div key={job.id} style={styles.jobCard}>
+                      <div style={styles.jobCardHeader}>
+                        <div>
+                          <div style={styles.jobCardCompany}>{job.company}</div>
+                          <div style={styles.jobCardRole}>{job.role}</div>
+                        </div>
+                        <span style={badgeStyle(job.status)}>{job.status}</span>
+                      </div>
+                      <div style={styles.jobCardFooter}>
+                        <span style={styles.jobCardDate}>{job.applied_date}</span>
+                        <button
+                          style={styles.viewButton}
+                          onClick={() => navigate(`/jobs/${job.id}`)}
+                        >
+                          View
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {filteredJobs.length > JOBS_PER_PAGE && (
+              <div style={styles.pagination}>
+                <button
+                  style={{
+                    ...styles.pageButton,
+                    ...(currentPage === 1 ? styles.pageButtonDisabled : {}),
+                  }}
+                  onClick={() => setCurrentPage(p => p - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+                <span style={styles.pageIndicator}>
+                  Page <span style={styles.pageActive}>{currentPage}</span> of {totalPages}
+                </span>
+                <button
+                  style={{
+                    ...styles.pageButton,
+                    ...(currentPage === totalPages ? styles.pageButtonDisabled : {}),
+                  }}
+                  onClick={() => setCurrentPage(p => p + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
               </div>
             )}
           </>
@@ -202,8 +266,8 @@ const Dashboard = () => {
       </div>
 
       {showModal && (
-        <div style={styles.overlay} onClick={() => setShowModal(false)}>
-          <div style={styles.modal} onClick={e => e.stopPropagation()}>
+        <div style={styles.overlay} className="add-job-overlay" onClick={() => setShowModal(false)}>
+          <div style={styles.modal} className="add-job-modal" onClick={e => e.stopPropagation()}>
             <h2 style={styles.modalTitle}>Add Job</h2>
             <form onSubmit={handleAddJob} style={styles.form}>
               {([
@@ -398,6 +462,38 @@ const styles: Record<string, CSSProperties> = {
     borderRadius: '4px',
     cursor: 'pointer',
   },
+  jobCard: {
+    background: '#13131a',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
+    padding: '16px',
+  },
+  jobCardHeader: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: '12px',
+    gap: '12px',
+  },
+  jobCardCompany: {
+    fontSize: '15px',
+    fontWeight: 600,
+    color: '#ffffff',
+    marginBottom: '2px',
+  },
+  jobCardRole: {
+    fontSize: '13px',
+    color: '#9a9aaa',
+  },
+  jobCardFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  jobCardDate: {
+    fontSize: '12px',
+    color: '#9a9aaa',
+  },
   overlay: {
     position: 'fixed',
     inset: 0,
@@ -468,6 +564,36 @@ const styles: Record<string, CSSProperties> = {
     border: '1px solid #2a2a3a',
     borderRadius: '4px',
     cursor: 'pointer',
+  },
+  pagination: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '16px',
+    marginTop: '20px',
+  },
+  pageButton: {
+    padding: '7px 16px',
+    fontSize: '14px',
+    fontWeight: 500,
+    background: 'transparent',
+    color: '#ffffff',
+    border: '1px solid #2a2a3a',
+    borderRadius: '4px',
+    cursor: 'pointer',
+  },
+  pageButtonDisabled: {
+    color: '#3a3a4a',
+    borderColor: '#1e1e2a',
+    cursor: 'not-allowed',
+  },
+  pageIndicator: {
+    fontSize: '14px',
+    color: '#9a9aaa',
+  },
+  pageActive: {
+    color: '#b1361e',
+    fontWeight: 700,
   },
 }
 

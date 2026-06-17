@@ -54,11 +54,11 @@ const Register = () => {
   if (success) {
     return (
       <div style={styles.page}>
-        <nav style={styles.nav}>
+        <nav style={styles.nav} className="auth-nav">
           <Link to="/" style={styles.navLogo}>Hireflow</Link>
         </nav>
         <div style={styles.content}>
-        <div style={styles.card}>
+        <div style={styles.card} className="auth-card">
           <h2 style={styles.title}>Check your email</h2>
           <p style={styles.successMsg}>
             We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
@@ -74,11 +74,11 @@ const Register = () => {
 
   return (
     <div style={styles.page}>
-      <nav style={styles.nav}>
+      <nav style={styles.nav} className="auth-nav">
         <Link to="/" style={styles.navLogo}>Hireflow</Link>
       </nav>
       <div style={styles.content}>
-      <div style={styles.card}>
+      <div style={styles.card} className="auth-card">
         <h2 style={styles.title}>Create your account</h2>
 
         <form onSubmit={handleSubmit} style={styles.form}>

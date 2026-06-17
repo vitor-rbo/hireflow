@@ -185,7 +185,7 @@ const JobDetail = () => {
         <div style={styles.card}>
           {editing && editForm ? (
             <>
-              <div style={styles.editGrid}>
+              <div style={styles.editGrid} className="edit-grid">
                 <div style={styles.field}>
                   <label style={styles.label} htmlFor="role">Role</label>
                   <input
@@ -247,7 +247,7 @@ const JobDetail = () => {
 
               <hr style={styles.divider} />
 
-              <div style={styles.actionRow}>
+              <div style={styles.actionRow} className="action-row">
                 <div style={styles.field}>
                   <label style={styles.label} htmlFor="status">Status</label>
                   <select
@@ -263,7 +263,7 @@ const JobDetail = () => {
                   </select>
                 </div>
 
-                <div style={styles.editActions}>
+                <div style={styles.editActions} className="detail-edit-actions">
                   <button style={styles.cancelButton} onClick={handleEditCancel} disabled={saving}>
                     Cancel
                   </button>
@@ -284,7 +284,7 @@ const JobDetail = () => {
                 <span style={badgeStyle(job.status)}>{job.status}</span>
               </div>
 
-              <div style={styles.grid}>
+              <div style={styles.grid} className="detail-grid">
                 <div style={styles.detailBlock}>
                   <span style={styles.detailLabel}>Applied Date</span>
                   <span style={styles.detailValue}>{job.applied_date}</span>
@@ -314,7 +314,7 @@ const JobDetail = () => {
 
               <hr style={styles.divider} />
 
-              <div style={styles.actionRow}>
+              <div style={styles.actionRow} className="action-row">
                 <div style={styles.field}>
                   <label style={styles.label} htmlFor="status">Change Status</label>
                   <select
@@ -330,7 +330,7 @@ const JobDetail = () => {
                   </select>
                 </div>
 
-                <div style={styles.editActions}>
+                <div style={styles.editActions} className="detail-edit-actions">
                   <button style={styles.editButton} onClick={handleEditStart}>
                     Edit
                   </button>
